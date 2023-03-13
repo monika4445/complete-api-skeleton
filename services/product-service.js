@@ -3,45 +3,43 @@ const db = new sqlite3.Database('./database.db');
 
 const productService = {
  getAllProducts : (req, res) => {
-      db.all('SELECT * FROM products', [], (err, data) => {
-        if (err) {
-          console.error(err.message);
-          res.status(500).send('Internal Server Error');
-        } else {
-          res.send(data);
-        }
-      });
+      db.all('SELECT * FROM products', []);
   },
 
   getProductById: (id) => {
-    db.get(`SELECT * FROM products WHERE id=${id}`, (err, data) => {
-        if (err) {
-          console.error(err.message);
-          res.status(500).send('Internal Server Error');
-        } else if (!data) {
-          res.status(404).send('Product not found.');
-        } else {
-          res.send(data);
-        }
-      });
+    db.get(`SELECT * FROM products WHERE id=${id}`);
   },
 
   createProduct : (name, description, price, image) => {
     db.run(
         'INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)',
-        [name, description, price, image],
-        (err) => {
-          if (err) {
-            console.error(err.message);
-            res.status(500).send('Internal Server Error');
-          } else {
-            res.send('Inserted into "products" database.');
-          }
-        }
+        [name, description, price, image]
       );
   },
 
-  
+  deleteProductById: (id) => { 
+    if (!id) {
+        res.status(400).send('Please provide the "id" parameter.');
+        return;
+      }
+    db.run(
+    'DELETE FROM products WHERE id = ?',
+    [id]
+  );
+},
+
+updateProductById: (id, name, description, price, image) => {
+    db.run(
+        'UPDATE products SET name = ?, description = ?, price = ?, image = ? WHERE id = ?',
+        [name, description, price, image, id]);
+},
+
+partialUpdateProductById: (id, updates) => {
+  const setValues = Object.keys(updates).map(update => `${update} = ?`).join(', ');
+  const values = Object.values(updates);
+
+  db.run(`UPDATE dresses SET ${setValues} WHERE id = ?`, [...values, id]);
+},
 
 
 }
